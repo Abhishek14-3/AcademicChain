@@ -1,9 +1,8 @@
-
 import { ethers } from 'ethers';
 import { DID_REGISTRY_ADDRESS, DID_REGISTRY_ABI, LOCALHOST_RPC_URL } from '../constants';
 
 // A read-only provider for querying the blockchain.
-const provider = new ethers.providers.JsonRpcProvider(LOCALHOST_RPC_URL);
+const provider = new ethers.JsonRpcProvider(LOCALHOST_RPC_URL);
 
 /**
  * Gets a read-only instance of the DIDRegistry contract.

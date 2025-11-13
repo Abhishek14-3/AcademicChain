@@ -1,4 +1,3 @@
-
 // NOTE: This is the default address for the first contract deployed in a local Hardhat node.
 // Replace with your actual deployed contract address.
 export const DID_REGISTRY_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
@@ -13,4 +12,4 @@ export const DID_REGISTRY_ABI = [
 ];
 
 // JSON-RPC endpoint for the local Hardhat node
-export const LOCALHOST_RPC_URL = "http://127.0.0.1:8545/";
+export const LOCALHOST_RPC_URL = "http://localhost:8545/";

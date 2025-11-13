@@ -1,4 +1,3 @@
-
 import { ethers } from 'ethers';
 import { v4 as uuidv4 } from 'uuid';
 import type { VerifiableCredential, Proof } from '../types';
@@ -35,7 +34,7 @@ export const canonicalizeVC = (vc: Omit<VerifiableCredential, 'proof'>): string 
  * @returns The Keccak-256 hash as a hex string.
  */
 export const computeCredentialHash = (canonicalVCString: string): string => {
-  return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(canonicalVCString));
+  return ethers.keccak256(ethers.toUtf8Bytes(canonicalVCString));
 };
 
 /**
@@ -49,7 +48,7 @@ export const signVC = async (vc: Omit<VerifiableCredential, 'proof'>, privateKey
   const canonicalVC = canonicalizeVC(vc);
   
   // Ethers' signMessage automatically hashes the message, so we sign the canonical string directly.
-  const signature = await wallet.signMessage(ethers.utils.toUtf8Bytes(canonicalVC));
+  const signature = await wallet.signMessage(ethers.toUtf8Bytes(canonicalVC));
 
   const proof: Proof = {
     type: "EcdsaSecp256k1Signature2019",
@@ -76,7 +75,7 @@ export const verifyVCSignature = (vc: VerifiableCredential): { valid: boolean; r
     const { proof, ...credentialWithoutProof } = vc;
     const canonicalVC = canonicalizeVC(credentialWithoutProof);
     
-    const recoveredAddress = ethers.utils.verifyMessage(ethers.utils.toUtf8Bytes(canonicalVC), proof.signature);
+    const recoveredAddress = ethers.verifyMessage(ethers.toUtf8Bytes(canonicalVC), proof.signature);
     
     const issuerAddress = vc.issuer.split(':').pop();
 

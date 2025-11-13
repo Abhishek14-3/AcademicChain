@@ -5,6 +5,9 @@ import { uploadToIPFS } from '../utils/ipfs';
 import { anchorCredential, registerDID } from '../services/contract';
 import type { VerifiableCredential } from '../types';
 
+// For TypeScript to recognize the library loaded from CDN
+declare const QRCode: any;
+
 interface Issuer {
   did: string;
   address: string;
@@ -20,6 +23,7 @@ const UniversityPortal: React.FC = () => {
   const [universityName, setUniversityName] = useState('University of Technology');
   const [transcriptFile, setTranscriptFile] = useState<File | null>(null);
   const [generatedVC, setGeneratedVC] = useState<VerifiableCredential | null>(null);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [status, setStatus] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
@@ -30,6 +34,8 @@ const UniversityPortal: React.FC = () => {
   const handleGenerateIssuer = useCallback(() => {
       const newIssuer = generateDid();
       setIssuer(newIssuer);
+      setGeneratedVC(null);
+      setQrCodeDataUrl(null);
       setStatus(`Generated new issuer DID: ${newIssuer.did}. Make sure to register it on-chain.`);
   }, []);
 
@@ -52,8 +58,9 @@ const UniversityPortal: React.FC = () => {
       return;
     }
     setIsLoading(true);
-    setStatus('Issuing credential...');
     setGeneratedVC(null);
+    setQrCodeDataUrl(null);
+    setStatus('Issuing credential...');
 
     try {
       let evidenceCid: string | undefined;
@@ -80,7 +87,7 @@ const UniversityPortal: React.FC = () => {
 
       const signedVC = await signVC(unsignedVC, issuer.privateKey);
       setGeneratedVC(signedVC);
-      setStatus('Credential issued successfully. You can now anchor it on-chain.');
+      setStatus('Credential issued successfully. You can now anchor it on-chain or generate a QR code.');
 
     } catch (error) {
       setStatus(`Error: ${(error as Error).message}`);
@@ -108,6 +115,26 @@ const UniversityPortal: React.FC = () => {
     }
     setIsLoading(false);
   };
+
+  const handleGenerateQRCode = async () => {
+    if (!generatedVC) return;
+    setStatus('Generating QR Code...');
+    try {
+      const qrCode = await QRCode.toDataURL(JSON.stringify(generatedVC), {
+        errorCorrectionLevel: 'M',
+        type: 'image/png',
+        quality: 0.95,
+        margin: 1,
+        width: 256,
+      });
+      setQrCodeDataUrl(qrCode);
+      setStatus('QR Code generated successfully.');
+    } catch (err) {
+      console.error('QR Code generation error:', err);
+      setStatus('Error generating QR code.');
+    }
+  };
+
 
   return (
     <div className="space-y-8">
@@ -162,9 +189,23 @@ const UniversityPortal: React.FC = () => {
               {generatedVC ? JSON.stringify(generatedVC, null, 2) : 'Awaiting issuance...'}
             </pre>
             {generatedVC && (
-              <button onClick={handleAnchorCredential} disabled={isLoading} className="mt-4 w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50">
-                {isLoading ? 'Anchoring...' : 'Anchor Credential On-Chain'}
-              </button>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button onClick={handleAnchorCredential} disabled={isLoading} className="flex-grow bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50">
+                  {isLoading ? 'Anchoring...' : 'Anchor On-Chain'}
+                </button>
+                 <button onClick={handleGenerateQRCode} disabled={isLoading} className="flex-grow bg-cyan-600 text-white font-bold py-2 px-4 rounded-md hover:bg-cyan-700 transition-colors disabled:opacity-50">
+                  Generate QR Code
+                </button>
+              </div>
+            )}
+            {qrCodeDataUrl && (
+              <div className="mt-6 pt-4 border-t border-gray-700 text-center">
+                <h4 className="text-lg font-semibold mb-3">Credential QR Code</h4>
+                <div className="bg-white inline-block p-2 rounded-lg shadow-md">
+                  <img src={qrCodeDataUrl} alt="Verifiable Credential QR Code" />
+                </div>
+                <p className="text-xs text-gray-400 mt-2">Scan this with the Student Wallet</p>
+              </div>
             )}
           </div>
         </div>
