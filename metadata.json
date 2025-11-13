@@ -1,0 +1,7 @@
+{
+  "name": "Copy of AcademiChain",
+  "description": "A decentralized application for issuing, storing, and verifying academic credentials on the blockchain.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
